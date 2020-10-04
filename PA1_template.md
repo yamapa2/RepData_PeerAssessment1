@@ -6,7 +6,8 @@ output:
 ---
 
 ## Set global options
-```{r global-options}
+
+```r
 knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='figs/',
                       echo=TRUE, warning=FALSE, message=FALSE)
 ```
@@ -20,7 +21,8 @@ Show any code that is needed to
 - Process/transform the data (if necessary) into a format suitable for your analysis  
 
 **Download the [activity dataset][1]**
-```{r}
+
+```r
 if(!file.exists("data"))
     dir.create("data")
 
@@ -33,13 +35,26 @@ if(!file.exists("data/activity.csv"))
 
 **Load the data**
 
-```{r}
+
+```r
 df <- read.csv("data/activity.csv", colClasses=c("numeric", "Date", "numeric"))
 ```
 
 **Summarize the dataset**
-```{r}
+
+```r
 summary(df)
+```
+
+```
+##      steps             date               interval     
+##  Min.   :  0.00   Min.   :2012-10-01   Min.   :   0.0  
+##  1st Qu.:  0.00   1st Qu.:2012-10-16   1st Qu.: 588.8  
+##  Median :  0.00   Median :2012-10-31   Median :1177.5  
+##  Mean   : 37.38   Mean   :2012-10-31   Mean   :1177.5  
+##  3rd Qu.: 12.00   3rd Qu.:2012-11-15   3rd Qu.:1766.2  
+##  Max.   :806.00   Max.   :2012-11-30   Max.   :2355.0  
+##  NA's   :2304
 ```
 
 ## What is mean total number of steps taken per day?
@@ -52,7 +67,8 @@ For this part of the assignment, you can ignore the missing values in the datase
 - Calculate and report the mean and median of the total number of steps taken per day  
 
 **Calculate the total number of steps taken per day**
-```{r}
+
+```r
 library(dplyr)
 
 sdf <- df %>%
@@ -61,14 +77,25 @@ sdf <- df %>%
 ```
 
 **Histogram of the total number of steps taken each day**
-```{r}
+
+```r
 hist(sdf$steps, main="", xlab="Total number of steps in each day")
 ```
 
+![](figs/unnamed-chunk-5-1.png)<!-- -->
+
 **Mean and and median of steps taken each day**
-```{r}
+
+```r
 sdf %>%
     summarize_at(vars(steps), list(mean=mean, median=median))
+```
+
+```
+## # A tibble: 1 x 2
+##    mean median
+##   <dbl>  <dbl>
+## 1 9354.  10395
 ```
 
 ## What is the average daily activity pattern?
@@ -81,19 +108,23 @@ sdf %>%
 
 **Calculate the average number of steps taken in each interval, averaged across all days**
 
-```{r}
+
+```r
 mdf <- df %>%
     group_by(interval) %>%
     summarize_at(vars(steps), mean, na.rm = TRUE)
 ```
 
 **A time series plot of the average number of steps taken**
-```{r}
+
+```r
 plot(mdf, type="l", ylab="Average steps")
 ```
 
+![](figs/unnamed-chunk-8-1.png)<!-- -->
+
 **The 5-minute interval, on average across all the days in the dataset, contains the maximum number of stepThe 5-minute is**:  
-**<span style="font-size:18px"> `r filter(mdf, steps == max(steps))$interval` </span>**
+**<span style="font-size:18px"> 835 </span>**
 
 ## Imputing missing values
 
@@ -106,11 +137,12 @@ Note that there are a number of days/intervals where there are missing values (c
 - Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?  
 
 **Total number of missing values in the dataset is**  
-**<span style="font-size:18px"> `r sum(is.na(df))` </span>**
+**<span style="font-size:18px"> 2304 </span>**
 
 **Replace missing values for steps, with the mean value for that interval**
 
-```{r}
+
+```r
 cdf <- df %>%
     inner_join(mdf, by="interval") %>%
     mutate(steps = as.integer(coalesce(steps.x, steps.y))) %>%
@@ -118,7 +150,8 @@ cdf <- df %>%
 ```
 
 **Histogram of the total number of steps taken each day**
-```{r}
+
+```r
 sdf <- cdf %>%
     group_by(date) %>%
     summarize_at(vars(steps), sum, na.rm = TRUE)
@@ -126,10 +159,20 @@ sdf <- cdf %>%
 hist(sdf$steps, main="", xlab="Total number of steps in each day")
 ```
 
+![](figs/unnamed-chunk-10-1.png)<!-- -->
+
 **Mean and and median of steps taken each day**
-```{r}
+
+```r
 sdf %>%
     summarize_at(vars(steps), list(mean=mean, median=median))
+```
+
+```
+## # A tibble: 1 x 2
+##     mean median
+##    <dbl>  <int>
+## 1 10750.  10641
 ```
 
 **Observations after imputing**:
@@ -146,14 +189,16 @@ For this part the weekdays() function may be of some help here. Use the dataset 
 
 **Add 'day' column to denote if the day is weekday or weekend day**
 
-```{r}
+
+```r
 wdf <- df %>%
     mutate(day = ifelse(weekdays(date) %in% c("Saturday", "Sunday"), "weekend", "weekday"))
 ```
 
 **Plots of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days**
 
-```{r}
+
+```r
 library(ggplot2)
 
 wdf %>%
@@ -164,5 +209,7 @@ wdf %>%
         facet_grid(day~.) +
         ylab("Average steps")
 ```
+
+![](figs/unnamed-chunk-13-1.png)<!-- -->
 
 [1]: https://d396qusza40orc.cloudfront.net/repdata/data/activity.zip "activity data"
